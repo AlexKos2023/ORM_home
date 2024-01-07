@@ -5,7 +5,10 @@ import sqlalchemy
 import sqlalchemy as sq
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from pprint import pprint
+from prettytable import PrettyTable 
 
+
+PASSWORD = input('Введите пароль от базы данных: ')
 
 Base = declarative_base()
 
@@ -72,7 +75,7 @@ class Sale(Base):
     stock = relationship(Stock, backref="stocks")
     
     def __str__(self):
-        return f'{self.price}, {self.date_sale}'
+        return f'{self.price} | {self.date_sale}'
 
 
 def create_tables(engine):
@@ -80,7 +83,7 @@ def create_tables(engine):
     Base.metadata.create_all(engine)
 
 #Создание адреса базы данных
-DSN = "postgresql://postgres:Vostok72@localhost:5432/one_else"
+DSN = f"postgresql://postgres:{PASSWORD}@localhost:5432/one_else"
 engine = sqlalchemy.create_engine(DSN)
 create_tables(engine)
 
@@ -112,24 +115,50 @@ session = Session()
 #Поиск данных
 def search_info():
     name = input('Введите фамилию искомого автора: ')
-    print('название книги', 'название магазина', 'стоимость покупки', 'дата покупки', sep=' | ')
-    q = session.query(Publisher).join(Book).join(Stock).join(Sale).join(Shop).filter(Publisher.name == name)
-    print(q)
-    for s in q.all():
-        print(s.name)
-        for bk in s.books:
-            print("\t", bk.title)
-            for st in bk.stocks:
-                #print("\t", st.count)
-                for sl in st.stocks:
-                    print("\t", sl.price,"\n\t", sl.date_sale)
+    th = ['название книги', 'название магазина', 'стоимость покупки | дата покупки']
+    q = session.query(Book, Shop, Sale, Publisher).join(Book).join(Stock).join(Sale).join(Shop).filter(Publisher.name == name).all()
+    lisa = []
+    for i in q:
+        lisa.append(str(i.Book))
+        lisa.append(str(i.Shop))
+        lisa.append(str (i.Sale))
+    columns = len(th)  # Подсчитаем кол-во столбцов на будущее.
+    table = PrettyTable(th)  # Определяем таблицу.
+    # Cкопируем список td, на случай если он будет использоваться в коде дальше.
+    td_data = lisa[:]
+    # Цикл для заполнения строк таблицы (список td_data).
+    while td_data:
+        # Используя срез добавляем первые пять элементов в строку.
+        # (columns = 2).
+        table.add_row(td_data[:columns])
+        # Используя срез переопределяем td_data так, чтобы он
+        # больше не содержал первых 2 элементов.
+        td_data = td_data[columns:]
+    print(table)
     
-
-        
-    
-
-    
-
 search_info()
-
 session.close()
+
+
+
+"""
+Некоторые примеры
+# вложенный запрос
+subq = session.query(Homework).filter(Homework.description.like("%сложн%")).subquery("simple_hw")
+q = session.query(Course).join(subq, Course.id == subq.c.course_id)
+print(q)
+for s in q.all():
+    print(s.id, s.name)
+    for hw in s.homeworks:
+        print("\t", hw.id, hw.number, hw.description)
+
+
+# обновление объектов
+session.query(Course).filter(Course.name == "JavaScript").update({"name": "NEW JavaScript"})
+session.commit()  # фиксируем изменения
+
+
+# удаление объектов
+session.query(Homework).filter(Homework.number > 1).delete()
+session.commit()  # фиксируем изменения
+"""
