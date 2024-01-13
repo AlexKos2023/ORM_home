@@ -71,7 +71,7 @@ class Sale(Base):
 
 
 def create_tables(engine):
-    #Base.metadata.drop_all(engine)
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
 
 #Создание адреса базы данных
@@ -85,23 +85,20 @@ Session = sessionmaker(bind = engine)
 session = Session()
 
 
-# =============================================================================
-# #Заполнение базы данных
-# with open(r"tests_data.json", "r", encoding="utf-8") as f:
-#     data = json.load(f)
-#     #pprint((data))
-# 
-# for record in data:
-#     model = {
-#         'publisher': Publisher,
-#         'shop': Shop,
-#         'book': Book,
-#         'stock': Stock,
-#         'sale': Sale,
-#     }[record.get('model')]
-#     session.add(model(id=record.get('pk'), **record.get('fields')))
-# session.commit()
-# =============================================================================
+def getfull():#Заполнение базы данных
+    with open(r"tests_data.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+    for record in data:
+        model = {
+            'publisher': Publisher,
+            'shop': Shop,
+            'book': Book,
+            'stock': Stock,
+            'sale': Sale,
+        }[record.get('model')]
+        session.add(model(id=record.get('pk'), **record.get('fields')))
+    session.commit()
+
 
 def getshops(search): #Функция принимает обязательный параметр
     th = ['название книги', 'название магазина', 'стоимость покупки', 'дата покупки']
@@ -129,7 +126,7 @@ def getshops(search): #Функция принимает обязательны�
     print(table)
         
             
-        
+getfull()
 getshops("2")
 session.close()
 
