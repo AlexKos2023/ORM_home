@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from prettytable import PrettyTable 
 
 
-PASSWORD = input('Введите пароль от базы данных: ')
+PASSWORD = "Vostok72" #input('Введите пароль от базы данных: ')
 
 Base = declarative_base()
 
@@ -128,8 +128,12 @@ def getshops(search): #Функция принимает обязательны�
         td_data = td_data[columns:]
     print(table)
         
-            
-getfull()
-getshops("2")
+
+if __name__ == '__main__':
+    getfull()
+    search = input(str("Введите имя искомого автора или его id: "))
+    getshops(search)
+
+
 session.close()
 
