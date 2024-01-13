@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from prettytable import PrettyTable 
 
 
-PASSWORD = "Vostok72" #input('Введите пароль от базы данных: ')
+PASSWORD = input('Введите пароль от базы данных: ')
 
 Base = declarative_base()
 
