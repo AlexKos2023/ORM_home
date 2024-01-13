@@ -88,16 +88,19 @@ session = Session()
 def getfull():#Заполнение базы данных
     with open(r"tests_data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
-    for record in data:
-        model = {
-            'publisher': Publisher,
-            'shop': Shop,
-            'book': Book,
-            'stock': Stock,
-            'sale': Sale,
-        }[record.get('model')]
-        session.add(model(id=record.get('pk'), **record.get('fields')))
-    session.commit()
+    try:
+        for record in data:
+            model = {
+                'publisher': Publisher,
+                'shop': Shop,
+                'book': Book,
+                'stock': Stock,
+                'sale': Sale,
+            }[record.get('model')]
+            session.add(model(id=record.get('pk'), **record.get('fields')))
+        session.commit()
+    except:
+        pass
 
 
 def getshops(search): #Функция принимает обязательный параметр
