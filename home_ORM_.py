@@ -1,10 +1,7 @@
 import json
-import os
-import psycopg2
 import sqlalchemy
 import sqlalchemy as sq
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-from pprint import pprint
 from prettytable import PrettyTable 
 
 
@@ -18,12 +15,7 @@ class Publisher(Base):
 
     id = sq.Column(sq.Integer, primary_key=True)
     name = sq.Column(sq.String(length=40), unique=True)
-# =============================================================================
-#     homeworks = relationship("Book", back_populates="publisher") 
-#     """Можно использовать вместо publisher = relationship(Publisher, backref="publisher")
-#        в классе Book, но прописав в Book publisher = relationship(Publisher, back_populates="book")
-#     """
-# =============================================================================
+    
     def __str__(self):
         return f'{self.name}'
 
@@ -33,7 +25,6 @@ class Book(Base):
     id = sq.Column(sq.Integer, primary_key=True)
     title = sq.Column(sq.String(length=160), unique=True)
     id_publisher = sq.Column(sq.Integer, sq.ForeignKey("publisher.id"), nullable=False)
-    # course = relationship(Course, back_populates="homeworks")
     publisher = relationship(Publisher, backref="books")
     
     def __str__(self):
@@ -75,7 +66,7 @@ class Sale(Base):
     stock = relationship(Stock, backref="stocks")
     
     def __str__(self):
-        return f'{self.price} | {self.date_sale}'
+        return f'{self.price}, {self.date_sale}'
 
 
 def create_tables(engine):
@@ -111,54 +102,33 @@ session = Session()
 # session.commit()
 # =============================================================================
 
-
-#Поиск данных
-def search_info():
-    name = input('Введите фамилию искомого автора: ')
-    th = ['название книги', 'название магазина', 'стоимость покупки | дата покупки']
-    q = session.query(Book, Shop, Sale, Publisher).join(Book).join(Stock).join(Sale).join(Shop).filter(Publisher.name == name).all()
+def getshops(search): #Функция принимает обязательный параметр
+    th = ['название книги', 'название магазина', 'стоимость покупки', 'дата покупки']
+    q = session.query(Book, Shop, Sale, Publisher).select_from(Shop).\
+    join(Stock).\
+    join(Book).\
+    join(Publisher).\
+    join(Sale)
+    if search.isdigit():
+        search_publ = q.filter(Publisher.id == search).all()
+    else:
+        search_publ = q.filter(Publisher.name == search).all()
     lisa = []
-    for i in q:
+    for i in search_publ:
         lisa.append(str(i.Book))
         lisa.append(str(i.Shop))
-        lisa.append(str (i.Sale))
-    columns = len(th)  # Подсчитаем кол-во столбцов на будущее.
-    table = PrettyTable(th)  # Определяем таблицу.
-    # Cкопируем список td, на случай если он будет использоваться в коде дальше.
+        lisa.append(str(i.Sale).split(', ')[0])
+        lisa.append(str(i.Sale).split()[1])
+    columns = len(th)
+    table = PrettyTable(th)
     td_data = lisa[:]
-    # Цикл для заполнения строк таблицы (список td_data).
     while td_data:
-        # Используя срез добавляем первые пять элементов в строку.
-        # (columns = 2).
         table.add_row(td_data[:columns])
-        # Используя срез переопределяем td_data так, чтобы он
-        # больше не содержал первых 2 элементов.
         td_data = td_data[columns:]
     print(table)
-    
-search_info()
+        
+            
+        
+getshops("2")
 session.close()
 
-
-
-"""
-Некоторые примеры
-# вложенный запрос
-subq = session.query(Homework).filter(Homework.description.like("%сложн%")).subquery("simple_hw")
-q = session.query(Course).join(subq, Course.id == subq.c.course_id)
-print(q)
-for s in q.all():
-    print(s.id, s.name)
-    for hw in s.homeworks:
-        print("\t", hw.id, hw.number, hw.description)
-
-
-# обновление объектов
-session.query(Course).filter(Course.name == "JavaScript").update({"name": "NEW JavaScript"})
-session.commit()  # фиксируем изменения
-
-
-# удаление объектов
-session.query(Homework).filter(Homework.number > 1).delete()
-session.commit()  # фиксируем изменения
-"""
