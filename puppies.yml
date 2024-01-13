@@ -1,6 +1,8 @@
+
 pip:
 greenlet==3.0.3
 jsons==1.6.3
 prettytable==3.9.0
 sqlalchemy==2.0.25
 typish==1.9.3
+psycopg2==2.9.9

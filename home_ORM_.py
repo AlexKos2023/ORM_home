@@ -1,4 +1,5 @@
 import json
+import psycopg2
 import sqlalchemy
 import sqlalchemy as sq
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
